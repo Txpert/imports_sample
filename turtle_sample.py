@@ -1,59 +1,73 @@
-def area(shape, params):
-    '''
-    :param shape: Shape
-    :type shape: string
-    :param params: Parameters of the shape
-    :type params: dict
+import pygame
+import sys
 
-    :return: Area of the shape
-    :rtype: float
-    '''
-    import math
+# Initialisiere Pygame
+pygame.init()
 
-    # Berechnung für einen Kreis
-    if shape == 'circle':
-        # Überprüfen, ob der 'radius'-Schlüssel im Dictionary 'params' vorhanden ist
-        if 'radius' in params:
-            # Extrahieren des Werts für 'radius' aus dem Dictionary 'params'
-            radius = params['radius']
-            # Berechnung der Fläche des Kreises mit der Formel π * radius^2
-            return math.pi * radius ** 2
-        else:
-            # Fehler auslösen, wenn 'radius' nicht im Dictionary vorhanden ist
-            raise ValueError("Radius parameter is required for a circle.")
-    
-    # Berechnung für ein Dreieck
-    elif shape == 'triangle':
-        # Überprüfen, ob die Schlüssel 'base' und 'height' im Dictionary 'params' vorhanden sind
-        if 'base' in params and 'height' in params:
-            # Extrahieren der Werte für 'base' und 'height' aus dem Dictionary 'params'
-            base = params['base']
-            height = params['height']
-            # Berechnung der Fläche des Dreiecks mit der Formel 0.5 * base * height
-            return 0.5 * base * height
-        else:
-            # Fehler auslösen, wenn 'base' oder 'height' nicht im Dictionary vorhanden sind
-            raise ValueError("Base and height parameters are required for a triangle.")
-    
-    # Berechnung für ein Rechteck
-    elif shape == 'rectangle':
-        # Überprüfen, ob die Schlüssel 'base' und 'height' im Dictionary 'params' vorhanden sind
-        if 'base' in params and 'height' in params:
-            # Extrahieren der Werte für 'base' und 'height' aus dem Dictionary 'params'
-            base = params['base']
-            height = params['height']
-            # Berechnung der Fläche des Rechtecks mit der Formel base * height
-            return base * height
-        else:
-            # Fehler auslösen, wenn 'base' oder 'height' nicht im Dictionary vorhanden sind
-            raise ValueError("Base and height parameters are required for a rectangle.")
-    
-    # Fehlerbehandlung für nicht unterstützte Formen
-    else:
-        # Fehler auslösen, wenn die Form nicht 'circle', 'triangle' oder 'rectangle' ist
-        raise ValueError("Unsupported shape type. Supported shapes: circle, triangle, rectangle.")
+# Bildschirmgröße
+screen_width = 800
+screen_height = 600
+screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption("Pong")
 
-# Beispielaufrufe der Funktion
-print(area('circle', {'radius': 1.0}))         # Ausgabe: 3.141592653589793
-print(area('triangle', {'base': 2, 'height': 1}))  # Ausgabe: 1.0
-print(area('rectangle', {'base': 2, 'height': 1})) # Ausgabe: 2.0
+# Farben
+black = (0, 0, 0)
+white = (255, 255, 255)
+
+# Ball Eigenschaften
+ball_size = 20
+ball_speed_x = 5
+ball_speed_y = 5
+ball = pygame.Rect(screen_width / 2 - ball_size / 2, screen_height / 2 - ball_size / 2, ball_size, ball_size)
+
+# Spieler Schläger Eigenschaften
+paddle_width = 10
+paddle_height = 100
+player_speed = 10
+player1 = pygame.Rect(10, screen_height / 2 - paddle_height / 2, paddle_width, paddle_height)
+player2 = pygame.Rect(screen_width - 20, screen_height / 2 - paddle_height / 2, paddle_width, paddle_height)
+
+# Spiel Schleife
+running = True
+clock = pygame.time.Clock()
+
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    # Tastendrücke erfassen
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_w] and player1.top > 0:
+        player1.y -= player_speed
+    if keys[pygame.K_s] and player1.bottom < screen_height:
+        player1.y += player_speed
+    if keys[pygame.K_UP] and player2.top > 0:
+        player2.y -= player_speed
+    if keys[pygame.K_DOWN] and player2.bottom < screen_height:
+        player2.y += player_speed
+
+    # Ball Bewegung
+    ball.x += ball_speed_x
+    ball.y += ball_speed_y
+
+    # Ball Kollision mit Wänden
+    if ball.top <= 0 or ball.bottom >= screen_height:
+        ball_speed_y *= -1
+    if ball.left <= 0 or ball.right >= screen_width:
+        ball_speed_x *= -1
+
+    # Ball Kollision mit Schlägern
+    if ball.colliderect(player1) or ball.colliderect(player2):
+        ball_speed_x *= -1
+
+    # Bildschirm aktualisieren
+    screen.fill(black)
+    pygame.draw.rect(screen, white, player1)
+    pygame.draw.rect(screen, white, player2)
+    pygame.draw.ellipse(screen, white, ball)
+    pygame.draw.aaline(screen, white, (screen_width / 2, 0), (screen_width / 2, screen_height))
+
+    pygame.display.flip()
+    clock.tick(60)
